@@ -37,8 +37,8 @@ Frontend SPA for WalletApp Digital Wallet Management System, built with **React.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/walletapp.git
-cd walletapp
+git clone https://github.com/rafli19/WalletAPP.git
+cd WalletAPP
 
 # 2. Install dependencies
 npm install
