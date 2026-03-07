@@ -131,4 +131,4 @@ Upload the generated `dist/` folder to your hosting public directory.
 
 ## 📄 License
 
-Built for educational purposes — Dibimbing.id Final Project.
+Built for educational purposes — Dibimbing.id Exam Project.
