@@ -125,7 +125,7 @@ Upload the generated `dist/` folder to your hosting public directory.
 
 ## 🔗 Related Repository
 
-- Backend (Laravel): [WalletAPI](https://github.com/your-username/walletapi)
+- Backend (Laravel): [WalletAPI](https://github.com/rafli19/WalletAPI)
 
 ---
 
