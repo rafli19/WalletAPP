@@ -30,13 +30,19 @@ const QUICK_AMOUNTS = [
 
 const validateForm = (form) => {
   const errors = {};
-  if (!form.identifier.trim()) {
+  if (!form.identifier.trim())
     errors.identifier = "Email atau nomor HP penerima wajib diisi.";
-  }
   const amountErr = validateNominal(form.amount);
   if (amountErr) errors.amount = amountErr;
   return errors;
 };
+
+const TIPS = [
+  "Pastikan email / No. HP penerima sudah terdaftar di WalletApp",
+  "Transfer langsung masuk ke saldo penerima tanpa perlu konfirmasi",
+  "Transfer tidak bisa dibatalkan setelah dikonfirmasi",
+  "Maksimal transfer Rp 50.000.000 per transaksi",
+];
 
 const Transfer = ({ user, onLogout }) => {
   const { toasts, addToast } = useToast();
@@ -65,7 +71,6 @@ const Transfer = ({ user, onLogout }) => {
   const handleIdentifierBlur = async () => {
     const id = form.identifier.trim();
     if (!id) return;
-
     setLookupLoading(true);
     setReceiver(null);
     try {
@@ -75,8 +80,10 @@ const Transfer = ({ user, onLogout }) => {
       setReceiver(res?.data || res);
       setErrors((prev) => ({ ...prev, identifier: "" }));
     } catch (e) {
-      const msg = e?.data?.message || "Pengguna tidak ditemukan.";
-      setErrors((prev) => ({ ...prev, identifier: msg }));
+      setErrors((prev) => ({
+        ...prev,
+        identifier: e?.data?.message || "Pengguna tidak ditemukan.",
+      }));
     } finally {
       setLookupLoading(false);
     }
@@ -190,98 +197,191 @@ const Transfer = ({ user, onLogout }) => {
         <p className="page-sub">Kirim saldo ke pengguna lain</p>
       </div>
 
-      <div className="balance-card" style={{ maxWidth: 480, marginBottom: 20 }}>
-        <div>
-          <div className="balance-label">Saldo Saat Ini</div>
-          <div className="balance-amount">
-            <span>Rp</span> {formattedBalance}
+      <div className="two-col-layout">
+        <div className="two-col-main">
+          <div className="balance-card" style={{ marginBottom: 20 }}>
+            <div>
+              <div className="balance-label">Saldo Saat Ini</div>
+              <div className="balance-amount">
+                <span>Rp</span> {formattedBalance}
+              </div>
+            </div>
+            <div className="balance-icon">
+              <Icon d={icons.wallet} size={28} />
+            </div>
+          </div>
+
+          <div className="panel">
+            <div className="panel-title">
+              <Icon d={icons.transfer} size={16} />
+              Detail Transfer
+            </div>
+
+            {errors.global && <div className="global-err">{errors.global}</div>}
+
+            <div className="form-field">
+              <label>Email / No. HP Penerima</label>
+              <input
+                type="text"
+                className={errors.identifier ? "error" : ""}
+                placeholder="Masukkan email atau nomor telepon penerima"
+                value={form.identifier}
+                onChange={handleChange("identifier")}
+                onBlur={handleIdentifierBlur}
+              />
+              {lookupLoading && (
+                <div className="receiver-lookup">
+                  <span
+                    className="spinner light"
+                    style={{ width: 12, height: 12 }}
+                  />
+                  <span>Mencari pengguna...</span>
+                </div>
+              )}
+              {receiver && !lookupLoading && (
+                <div className="receiver-found">
+                  <div className="receiver-avatar">
+                    <Icon d={icons.user} size={14} />
+                  </div>
+                  <div>
+                    <div className="receiver-name">{receiver.name}</div>
+                    <div className="receiver-username">
+                      @{receiver.username}
+                    </div>
+                  </div>
+                </div>
+              )}
+              {errors.identifier && (
+                <div className="form-err">{errors.identifier}</div>
+              )}
+            </div>
+
+            <div className="quick-amounts">
+              {QUICK_AMOUNTS.map(({ label, value }) => (
+                <button
+                  key={value}
+                  className={`quick-amount-btn ${form.amount === String(value) ? "active" : ""}`}
+                  onClick={() => handleQuickAmount(value)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="form-field">
+              <label>Atau masukkan nominal lain (IDR)</label>
+              <input
+                type="text"
+                className={errors.amount ? "error" : ""}
+                placeholder="Contoh: 50000"
+                value={form.amount}
+                onChange={handleChange("amount")}
+                onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
+              />
+              {errors.amount && <div className="form-err">{errors.amount}</div>}
+            </div>
+
+            <button
+              className="btn-action btn-accent"
+              onClick={handleConfirm}
+              disabled={loading || !form.identifier || !form.amount}
+            >
+              {loading ? (
+                <span className="spinner" />
+              ) : (
+                <Icon d={icons.arrow} size={16} />
+              )}
+              {loading ? "Memproses..." : "Kirim Sekarang"}
+            </button>
           </div>
         </div>
-        <div className="balance-icon">
-          <Icon d={icons.wallet} size={28} />
-        </div>
-      </div>
 
-      <div className="panel" style={{ maxWidth: 480 }}>
-        <div className="panel-title">
-          <Icon d={icons.transfer} size={16} />
-          Detail Transfer
-        </div>
-
-        {errors.global && <div className="global-err">{errors.global}</div>}
-
-        <div className="form-field">
-          <label>Email / No. HP Penerima</label>
-          <input
-            type="text"
-            className={errors.identifier ? "error" : ""}
-            placeholder="Masukkan email atau nomor telepon penerima"
-            value={form.identifier}
-            onChange={handleChange("identifier")}
-            onBlur={handleIdentifierBlur}
-          />
-          {lookupLoading && (
-            <div className="receiver-lookup">
-              <span
-                className="spinner light"
-                style={{ width: 12, height: 12 }}
-              />
-              <span>Mencari pengguna...</span>
+        <div className="two-col-side">
+          <div className="panel">
+            <div className="panel-title">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                width="16"
+                height="16"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ color: "var(--accent)" }}
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 16v-4M12 8h.01" />
+              </svg>
+              Tips Transfer
             </div>
-          )}
-          {receiver && !lookupLoading && (
-            <div className="receiver-found">
-              <div className="receiver-avatar">
-                <Icon d={icons.user} size={14} />
-              </div>
-              <div>
-                <div className="receiver-name">{receiver.name}</div>
-                <div className="receiver-username">@{receiver.username}</div>
-              </div>
-            </div>
-          )}
-          {errors.identifier && (
-            <div className="form-err">{errors.identifier}</div>
-          )}
-        </div>
-
-        <div className="quick-amounts">
-          {QUICK_AMOUNTS.map(({ label, value }) => (
-            <button
-              key={value}
-              className={`quick-amount-btn ${form.amount === String(value) ? "active" : ""}`}
-              onClick={() => handleQuickAmount(value)}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+                marginTop: 4,
+              }}
             >
-              {label}
-            </button>
-          ))}
-        </div>
+              {TIPS.map((tip, i) => (
+                <div
+                  key={i}
+                  style={{ display: "flex", alignItems: "flex-start", gap: 10 }}
+                >
+                  <span
+                    style={{
+                      color: "var(--accent)",
+                      fontSize: 18,
+                      lineHeight: 1,
+                      flexShrink: 0,
+                    }}
+                  >
+                    ·
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 13,
+                      color: "var(--text-dim)",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {tip}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
 
-        <div className="form-field">
-          <label>Atau masukkan nominal lain (IDR)</label>
-          <input
-            type="text"
-            className={errors.amount ? "error" : ""}
-            placeholder="Contoh: 50000"
-            value={form.amount}
-            onChange={handleChange("amount")}
-            onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
-          />
-          {errors.amount && <div className="form-err">{errors.amount}</div>}
+          <div className="panel" style={{ marginTop: 16 }}>
+            <div className="panel-title">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                width="16"
+                height="16"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ color: "var(--accent)" }}
+              >
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.8a16 16 0 0 0 6.29 6.29l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+              </svg>
+              Butuh Bantuan?
+            </div>
+            <p
+              style={{
+                fontSize: 13,
+                color: "var(--text-dim)",
+                lineHeight: 1.6,
+                margin: 0,
+              }}
+            >
+              Jika transfer gagal atau saldo tidak masuk dalam 1×24 jam, hubungi
+              tim support kami.
+            </p>
+          </div>
         </div>
-
-        <button
-          className="btn-action btn-accent"
-          onClick={handleConfirm}
-          disabled={loading || !form.identifier || !form.amount}
-        >
-          {loading ? (
-            <span className="spinner" />
-          ) : (
-            <Icon d={icons.arrow} size={16} />
-          )}
-          {loading ? "Memproses..." : "Kirim Sekarang"}
-        </button>
       </div>
     </Layout>
   );

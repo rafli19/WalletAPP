@@ -1,18 +1,12 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import Icon, { icons } from "./Icon";
 
-const Sidebar = ({ user, onLogout, open, onClose }) => {
+const AdminSidebar = ({ user, onLogout, open, onClose }) => {
   const navigate = useNavigate();
 
-  const navLinks = [
-    { to: "/dashboard", icon: icons.wallet, label: "Dashboard" },
-    { to: "/topup", icon: icons.topup, label: "Top Up" },
-    { to: "/transfer", icon: icons.transfer, label: "Transfer" },
-    { to: "/transactions", icon: icons.history, label: "Riwayat" },
-  ];
-
   const adminLinks = [
-    { to: "/admin/topups", icon: icons.topup, label: "Kelola Topup" },
+    { to: "/admin", icon: icons.wallet, label: "Dashboard" },
+    { to: "/admin/topups", icon: icons.topup, label: "Riwayat Top Up" },
     { to: "/admin/users", icon: icons.user, label: "Kelola User" },
   ];
 
@@ -28,15 +22,29 @@ const Sidebar = ({ user, onLogout, open, onClose }) => {
         <div className="sidebar-logo-icon">
           <Icon d={icons.wallet} size={18} stroke="#0a0a0f" />
         </div>
-        <span className="sidebar-logo-text">WalletApp</span>
+        <div>
+          <span className="sidebar-logo-text">WalletApp</span>
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              color: "var(--accent)",
+              letterSpacing: 1.5,
+              textTransform: "uppercase",
+              marginTop: 1,
+            }}
+          >
+            Admin Panel
+          </div>
+        </div>
       </div>
 
       <nav className="sidebar-nav">
-        {/* Menu user */}
-        {navLinks.map(({ to, icon, label }) => (
+        {adminLinks.map(({ to, icon, label }) => (
           <NavLink
             key={to}
             to={to}
+            end={to === "/admin"}
             className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
             onClick={handleNavClick}
           >
@@ -44,26 +52,6 @@ const Sidebar = ({ user, onLogout, open, onClose }) => {
             <span>{label}</span>
           </NavLink>
         ))}
-
-        {/* Menu admin — hanya tampil kalau role = admin */}
-        {user?.role === "admin" && (
-          <>
-            <div className="nav-section-label">Admin</div>
-            {adminLinks.map(({ to, icon, label }) => (
-              <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) =>
-                  `nav-item nav-item-admin ${isActive ? "active" : ""}`
-                }
-                onClick={handleNavClick}
-              >
-                <Icon d={icon} size={18} />
-                <span>{label}</span>
-              </NavLink>
-            ))}
-          </>
-        )}
       </nav>
 
       <div className="sidebar-footer">
@@ -72,7 +60,7 @@ const Sidebar = ({ user, onLogout, open, onClose }) => {
             <Icon d={icons.user} size={14} />
           </div>
           <div className="sidebar-user-info">
-            <span className="sidebar-username">{user?.name || "User"}</span>
+            <span className="sidebar-username">{user?.name || "Admin"}</span>
             <span className="sidebar-email">{user?.email || ""}</span>
           </div>
         </div>
@@ -84,4 +72,4 @@ const Sidebar = ({ user, onLogout, open, onClose }) => {
   );
 };
 
-export default Sidebar;
+export default AdminSidebar;

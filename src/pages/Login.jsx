@@ -10,7 +10,6 @@ const buildPayload = (mode, form) => {
   if (mode === "login") {
     return { email: form.email, password: form.password };
   }
-
   return {
     name: form.name,
     username: form.username.toLowerCase().replace(/\s+/g, ""),
@@ -67,7 +66,8 @@ const Login = ({ onLogin }) => {
       if (token && user) {
         sessionStorage.setItem("wallet_token", token);
         onLogin(user);
-        navigate("/dashboard");
+        // Redirect sesuai role — admin ke /admin, user ke /dashboard
+        navigate(user.role === "admin" ? "/admin" : "/dashboard");
       }
     } catch (err) {
       setGlobalErr(extractErrorMessage(err));
@@ -125,7 +125,6 @@ const Login = ({ onLogin }) => {
               />
               {errors.name && <div className="field-err">{errors.name}</div>}
             </div>
-
             <div className="auth-field">
               <label>Username</label>
               <input

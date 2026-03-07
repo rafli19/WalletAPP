@@ -29,7 +29,7 @@ const INITIAL_FORM = {
 const getAvatarUrl = (avatar) => {
   if (!avatar) return null;
   const base = (
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"
+    import.meta.env.VITE_API_BASE_URL || "http://walletapi.rafvoid.my.id"
   ).replace(/\/api$/, "");
   return `${base}/storage/avatars/${avatar}`;
 };
