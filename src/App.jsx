@@ -11,6 +11,7 @@ import Profile from "./pages/Profile";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminTopups from "./pages/AdminTopups";
 import AdminUsers from "./pages/AdminUsers";
+import AdminProfile from "./pages/AdminProfile";
 import api from "./services/api";
 import "./index.css";
 
@@ -53,7 +54,6 @@ const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Login — kalau sudah login, redirect sesuai role */}
         <Route
           path="/login"
           element={
@@ -68,7 +68,6 @@ const App = () => {
           }
         />
 
-        {/* ── USER ROUTES ── */}
         <Route
           path="/dashboard"
           element={
@@ -114,7 +113,6 @@ const App = () => {
           }
         />
 
-        {/* ── ADMIN ROUTES ── */}
         <Route
           path="/admin"
           element={
@@ -139,8 +137,19 @@ const App = () => {
             </AdminRoute>
           }
         />
+        <Route
+          path="/admin/profile"
+          element={
+            <AdminRoute user={user}>
+              <AdminProfile
+                user={user}
+                onLogout={handleLogout}
+                onUserUpdated={setUser}
+              />
+            </AdminRoute>
+          }
+        />
 
-        {/* Fallback — redirect sesuai role */}
         <Route
           path="*"
           element={

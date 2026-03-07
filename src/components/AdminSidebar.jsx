@@ -12,7 +12,7 @@ const AdminSidebar = ({ user, onLogout, open, onClose }) => {
 
   const handleNavClick = () => onClose?.();
   const handleProfileClick = () => {
-    navigate("/profile");
+    navigate("/admin/profile");
     onClose?.();
   };
 
@@ -55,7 +55,11 @@ const AdminSidebar = ({ user, onLogout, open, onClose }) => {
       </nav>
 
       <div className="sidebar-footer">
-        <div className="sidebar-user" onClick={handleProfileClick}>
+        <div
+          className="sidebar-user"
+          onClick={handleProfileClick}
+          style={{ cursor: "pointer" }}
+        >
           <div className="sidebar-avatar">
             <Icon d={icons.user} size={14} />
           </div>
