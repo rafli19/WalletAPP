@@ -1,30 +1,40 @@
 import { useState, useEffect, useCallback } from "react";
+import * as XLSX from "xlsx";
 import AdminLayout from "../components/AdminLayout";
 import Icon, { icons } from "../components/Icon";
 import api from "../services/api";
 import { fmt, fmtDate } from "../services/format";
 
-const STATUS_TABS = [
-  { key: "approved", label: "Disetujui" },
-  { key: "rejected", label: "Ditolak" },
-];
+const exportExcel = (txs) => {
+  const rows = txs.map((tx) => ({
+    Nama: tx.user?.name || "-",
+    Username: `@${tx.user?.username || "-"}`,
+    Nominal: tx.amount,
+    Status: "Berhasil",
+    Waktu: fmtDate(tx.created_at),
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Riwayat Top Up");
+  XLSX.writeFile(wb, `riwayat-topup-${Date.now()}.xlsx`);
+};
 
 const AdminTopups = ({ user, onLogout }) => {
   const [txs, setTxs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState("approved");
 
   const loadTopups = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get(`/admin/topups?status=${status}`);
+      const res = await api.get("/admin/topups?status=approved");
       setTxs(res.data || []);
     } catch {
       setTxs([]);
     } finally {
       setLoading(false);
     }
-  }, [status]);
+  }, []);
 
   useEffect(() => {
     loadTopups();
@@ -37,23 +47,25 @@ const AdminTopups = ({ user, onLogout }) => {
         <p className="page-sub">Histori semua transaksi top up user</p>
       </div>
 
-      {/* Status Tabs */}
-      <div className="admin-tabs">
-        {STATUS_TABS.map((tab) => (
-          <button
-            key={tab.key}
-            className={`admin-tab ${status === tab.key ? "active" : ""}`}
-            onClick={() => setStatus(tab.key)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
       <div className="panel">
-        <div className="panel-title">
-          <Icon d={icons.topup} size={16} />
-          {status === "approved" ? "Top Up Disetujui" : "Top Up Ditolak"}
+        <div
+          className="panel-title"
+          style={{ justifyContent: "space-between" }}
+        >
+          <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Icon d={icons.topup} size={16} />
+            Top Up Berhasil
+          </span>
+          {txs.length > 0 && (
+            <button
+              className="btn-action btn-green"
+              style={{ width: "auto", padding: "8px 16px", marginTop: 0 }}
+              onClick={() => exportExcel(txs)}
+            >
+              <Icon d={icons.arrow} size={14} />
+              Export Excel
+            </button>
+          )}
         </div>
 
         {loading && (
@@ -63,7 +75,7 @@ const AdminTopups = ({ user, onLogout }) => {
         )}
 
         {!loading && txs.length === 0 && (
-          <div className="empty-state">Tidak ada data.</div>
+          <div className="empty-state">Belum ada transaksi top up.</div>
         )}
 
         {/* Desktop */}
@@ -75,6 +87,7 @@ const AdminTopups = ({ user, onLogout }) => {
                 <th>Nominal</th>
                 <th>Status</th>
                 <th>Waktu</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -96,13 +109,10 @@ const AdminTopups = ({ user, onLogout }) => {
                   </td>
                   <td className="tx-amount in">{fmt(tx.amount)}</td>
                   <td>
-                    <span
-                      className={`tx-type ${tx.status === "approved" ? "tx-in" : "tx-out"}`}
-                    >
-                      {tx.status === "approved" ? "Disetujui" : "Ditolak"}
-                    </span>
+                    <span className="tx-type tx-in">Berhasil</span>
                   </td>
                   <td className="tx-date">{fmtDate(tx.created_at)}</td>
+                  <td></td>
                 </tr>
               ))}
             </tbody>

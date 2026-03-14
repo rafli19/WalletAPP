@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Layout from "../components/Layout";
 import Icon, { icons } from "../components/Icon";
+import Modal from "../components/Modal";
 import useToast from "../hooks/useToast";
 import useWallet from "../hooks/useWallet";
 import api from "../services/api";
@@ -32,6 +33,8 @@ const Topup = ({ user, onLogout }) => {
   const [amount, setAmount] = useState("");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [lastAmount, setLastAmount] = useState(0);
 
   const formattedBalance =
     balance === null ? "..." : new Intl.NumberFormat("id-ID").format(balance);
@@ -55,8 +58,9 @@ const Topup = ({ user, onLogout }) => {
     setLoading(true);
     try {
       await api.post("/topup", { amount: parseInt(amount, 10) });
-      addToast("Top up berhasil! Saldo telah ditambahkan.", "success");
+      setLastAmount(parseInt(amount, 10));
       setAmount("");
+      setShowSuccess(true);
       refetch();
     } catch (e) {
       const msg =
@@ -67,9 +71,51 @@ const Topup = ({ user, onLogout }) => {
     }
   };
 
+  const handleCloseSuccess = () => {
+    setShowSuccess(false);
+    setLastAmount(0);
+  };
+
   return (
     <Layout user={user} onLogout={onLogout}>
       <ToastContainer toasts={toasts} />
+
+      {/* Modal Sukses */}
+      <Modal show={showSuccess} onClose={handleCloseSuccess}>
+        <div
+          style={{
+            width: 64,
+            height: 64,
+            borderRadius: 20,
+            background: "var(--green-dim)",
+            border: "1px solid rgba(77,255,180,0.25)",
+            display: "grid",
+            placeItems: "center",
+            margin: "0 auto 20px",
+            color: "var(--green)",
+          }}
+        >
+          <Icon d={icons.check} size={28} />
+        </div>
+        <h2 className="modal-title">Top Up Berhasil!</h2>
+        <p className="modal-sub">
+          Saldo kamu telah berhasil ditambahkan sebesar
+        </p>
+        <div className="modal-amount" style={{ color: "var(--green)" }}>
+          {fmt(lastAmount)}
+        </div>
+        <p className="modal-sub" style={{ marginBottom: 24 }}>
+          Saldo kamu sekarang sudah diperbarui.
+        </p>
+        <div className="modal-actions">
+          <button
+            className="modal-btn-confirm btn-green"
+            onClick={handleCloseSuccess}
+          >
+            Oke, Mengerti
+          </button>
+        </div>
+      </Modal>
 
       <div className="page-header">
         <h1 className="page-title">Top Up</h1>
