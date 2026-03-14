@@ -7,7 +7,6 @@ import { fmt, fmtDate } from "../services/format";
 
 const AdminDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
-
   const [topups, setTopups] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +15,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     setLoading(true);
     try {
       const [topupRes, userRes] = await Promise.all([
-        api.get("/admin/topups?status=pending"),
+        api.get("/admin/topups?status=approved"),
         api.get("/admin/users"),
       ]);
       setTopups(topupRes.data || []);
@@ -33,9 +32,9 @@ const AdminDashboard = ({ user, onLogout }) => {
     loadData();
   }, [loadData]);
 
-  const totalPending = topups.length;
   const totalUsers = users.length;
   const totalAdmins = users.filter((u) => u.role === "admin").length;
+  const totalTopups = topups.length;
 
   return (
     <AdminLayout user={user} onLogout={onLogout}>
@@ -57,19 +56,14 @@ const AdminDashboard = ({ user, onLogout }) => {
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Top Up Pending</div>
-          <div
-            className="stat-value"
-            style={{
-              color: totalPending > 0 ? "var(--accent)" : "var(--text)",
-            }}
-          >
-            {loading ? "..." : totalPending}
+          <div className="stat-label">Total Top Up</div>
+          <div className="stat-value" style={{ color: "var(--green)" }}>
+            {loading ? "..." : totalTopups}
           </div>
         </div>
       </div>
 
-      {/* Pending topups */}
+      {/* Recent topups */}
       <div className="panel" style={{ marginBottom: 20 }}>
         <div
           className="panel-title"
@@ -77,21 +71,7 @@ const AdminDashboard = ({ user, onLogout }) => {
         >
           <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <Icon d={icons.topup} size={16} />
-            Top Up Menunggu Konfirmasi
-            {totalPending > 0 && (
-              <span
-                style={{
-                  background: "var(--accent)",
-                  color: "#0a0a0f",
-                  fontSize: 11,
-                  fontWeight: 800,
-                  padding: "2px 8px",
-                  borderRadius: 99,
-                }}
-              >
-                {totalPending}
-              </span>
-            )}
+            Top Up Terbaru
           </span>
           <button
             className="btn-link"
@@ -107,23 +87,18 @@ const AdminDashboard = ({ user, onLogout }) => {
             <span className="spinner light" />
           </div>
         )}
-
         {!loading && topups.length === 0 && (
-          <div className="empty-state">
-            Tidak ada top up yang menunggu konfirmasi.
-          </div>
+          <div className="empty-state">Belum ada top up.</div>
         )}
 
         {!loading && topups.length > 0 && (
           <>
-            {/* Desktop */}
             <table className="tx-table tx-table-desktop">
               <thead>
                 <tr>
                   <th>User</th>
                   <th>Nominal</th>
                   <th>Waktu</th>
-                  <th>Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -145,20 +120,11 @@ const AdminDashboard = ({ user, onLogout }) => {
                     </td>
                     <td className="tx-amount in">{fmt(tx.amount)}</td>
                     <td className="tx-date">{fmtDate(tx.created_at)}</td>
-                    <td>
-                      <button
-                        className="admin-btn-approve"
-                        onClick={() => navigate("/admin/topups")}
-                      >
-                        Proses
-                      </button>
-                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
 
-            {/* Mobile */}
             <div className="tx-card-list">
               {topups.slice(0, 5).map((tx) => (
                 <div key={tx.id} className="tx-card">
@@ -174,13 +140,6 @@ const AdminDashboard = ({ user, onLogout }) => {
                   </div>
                 </div>
               ))}
-              <button
-                className="btn-link"
-                style={{ marginTop: 12 }}
-                onClick={() => navigate("/admin/topups")}
-              >
-                Proses semua →
-              </button>
             </div>
           </>
         )}
@@ -210,14 +169,12 @@ const AdminDashboard = ({ user, onLogout }) => {
             <span className="spinner light" />
           </div>
         )}
-
         {!loading && users.length === 0 && (
           <div className="empty-state">Belum ada user.</div>
         )}
 
         {!loading && users.length > 0 && (
           <>
-            {/* Desktop */}
             <table className="tx-table tx-table-desktop">
               <thead>
                 <tr>
@@ -256,7 +213,6 @@ const AdminDashboard = ({ user, onLogout }) => {
               </tbody>
             </table>
 
-            {/* Mobile */}
             <div className="tx-card-list">
               {users.slice(0, 5).map((u) => (
                 <div key={u.id} className="tx-card">
